@@ -30,6 +30,7 @@ def print_message(message, color):
     }
     print(f"{colors.get(color, colors['end'])}{message}{colors['end']}")
 
+
 print("----------------------------------------------------------------------------")
 print_message("OpenCore with UEFI Secureboot Support", "yellow")
 print("----------------------------------------------------------------------------")
@@ -331,6 +332,7 @@ def generate_certificate():
         print_message("Certificate generation failed.", "red")
         print(str(e))
 
+
 def calculate_checksums(directory):
     extensions = (".auth", ".crt", ".esl", ".key")
     excluded_files = ["noPK.crt", "noPK.esl", "noPK.key"]
@@ -347,6 +349,7 @@ def calculate_checksums(directory):
             print(f"Skipping {file}")
         elif not os.path.exists(file):
             print(f"File {file} does not exist.")
+
 
 generate_certificate()
 
@@ -367,12 +370,15 @@ def change_permissions(dir):
                 try:
                     os.chmod(filepath, 0o600)
                 except Exception as e:
-                    print_message(f"Error changing permissions for {filepath}: {e}", "red")
+                    print_message(
+                        f"Error changing permissions for {filepath}: {e}", "red"
+                    )
 
     for dir_path, files in files_by_dir.items():
         print(f"Changing permission:")
-        file_list = ', '.join(files)
+        file_list = ", ".join(files)
         print(f"{dir_path}: {file_list}")
+
 
 keys_dir = "keys"
 if os.path.exists(keys_dir):
@@ -385,13 +391,17 @@ print("-------------------------------------------------------------------------
 print_message("Downloading MS Certificates", "yellow")
 print("----------------------------------------------------------------------------")
 
+
 def rename_files_and_replace_spaces(dir, filename_map):
     for file in os.listdir(dir):
         if file.endswith((".auth", ".cer", ".crt", ".esl", ".key")):
             old_filepath = Path(dir, file)
-            new_filename = filename_map.get(file, file).replace("-", " ").replace("%20", " ")
+            new_filename = (
+                filename_map.get(file, file).replace("-", " ").replace("%20", " ")
+            )
             new_filepath = Path(dir, new_filename)
             os.rename(old_filepath, new_filepath)
+
 
 def calculate_sha1(file_path):
     sha1 = hashlib.sha1()
@@ -402,6 +412,7 @@ def calculate_sha1(file_path):
                 break
             sha1.update(data)
     return sha1.hexdigest()
+
 
 keys_dir = "keys"
 
@@ -417,7 +428,9 @@ urls = {
 download_failed = False
 
 for url, filename in urls.items():
-    filename = filename + os.path.splitext(urllib.parse.urlparse(url).path)[1]  # Keep the original extension
+    filename = (
+        filename + os.path.splitext(urllib.parse.urlparse(url).path)[1]
+    )  # Keep the original extension
     filepath = Path(keys_dir, filename)
     try:
         urllib.request.urlretrieve(url, str(filepath))
@@ -430,7 +443,13 @@ for url, filename in urls.items():
 
 if not download_failed:
     print_message("MS keys downloaded and saved successfully", "blue")
-    rename_files_and_replace_spaces(keys_dir, {os.path.basename(urllib.parse.urlparse(url).path): name for url, name in urls.items()})
+    rename_files_and_replace_spaces(
+        keys_dir,
+        {
+            os.path.basename(urllib.parse.urlparse(url).path): name
+            for url, name in urls.items()
+        },
+    )
     print_message("Files renamed and spaces replaced", "green")
 else:
     print_message("MS keys downloading failed.", "red")
@@ -617,6 +636,7 @@ print("-------------------------------------------------------------------------
 
 oc_dir = "oc"
 
+
 def get_latest_release_and_download():
     api_url = "https://api.github.com/repos/acidanthera/OpenCorePkg/releases/latest"
     oc_dir = "oc"
@@ -641,7 +661,6 @@ def get_latest_release_and_download():
             os.remove(zip_file_path)
             print(
                 f"OpenCore {latest_version} downloaded, extracted, and zip file deleted."
-               
             )
             source_dir = Path(oc_dir, "X64/EFI")
             destination_dir = oc_dir
@@ -700,6 +719,7 @@ def compute_checksums(file_path):
             md5_hash.update(chunk)
     return sha1_hash.hexdigest(), md5_hash.hexdigest()
 
+
 def sign_files(dir):
     for root, dirs, files in os.walk(dir):
         for file in files:
@@ -725,7 +745,7 @@ def sign_files(dir):
                     print_message(f"Signing successful for {file} in {root}", "blue")
                     sha1_hash, md5_hash = compute_checksums(file_path)
                     print(f"SHA1: {sha1_hash}, MD5: {md5_hash} for {file}")
-                    
+
                     # Verify the signed file
                     verification_result = subprocess.run(
                         ["sbverify", "--list", str(file_path)],
@@ -738,6 +758,6 @@ def sign_files(dir):
                     print_message(f"Signing failed for {file} in {root}. Error:", "red")
                     print(result.stderr)
 
+
 sign_files(oc_dir)
 print_message("Signing Complete.", "green")
-
