@@ -167,7 +167,7 @@ Go to bios, find secureboot option, delete current keys and...
 2. Enroll KEK.auth and Additional Microsoft Windows KEK.auth for Key Exchange Key option.
 3. Enroll PK.auth for Platform Key.
 4. Enable secureboot and restart.
-   > Note: By enroll PK.auth will change secureboot mode from setup to user. As an alternative, use noPK.auth to clear all secure boot keys,
+   > Note: By enroll PK.auth will change secureboot mode from setup to user. As an alternative, use noPK.auth to clear all secure boot keys.
 
 ### Additional
 
