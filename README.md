@@ -2,11 +2,11 @@
 
 An attempt to achieve OpenCore UEFI Secure Boot. This will allow OpenCore run in UEFI Secure Boot mode.
 
-## Operating System
+### Operating System
 
 This script should be run on Linux.
 
-## Modules needed
+### Modules needed
 
 These modules collectively facilitate various operations such as file manipulation, HTTP requests, process management, and cryptographic operations necessary for the tasks performed by the script, including certificate generation, file downloading, directory management, and OpenCore package manipulation. Please install all module via "pip".
 
@@ -21,7 +21,7 @@ These modules collectively facilitate various operations such as file manipulati
 - **urllib.request** - Opening URLs.
 - **zipfile** - Creating, reading, writing, and extracting ZIP files.
 
-## Other requirement
+### Other Requirement
 
 These are requirement for signing all drivers / tools
 
@@ -30,7 +30,7 @@ These are requirement for signing all drivers / tools
 - **curl** - Utility used for downloading files from URLs. It's a versatile command-line tool for transferring data with URLs. Similar to the other dependencies.
 - **sbctl** - Tool that allows one to create keys for secure boot, securely enroll them and keep track of files to sign.
 
-### How to run?
+### How To?
 
 Step is quite simple. All will automaticaly generate random uuid, downloading latest OpenCore Package and signed all drivers / tools.
 
@@ -173,6 +173,6 @@ Go to bios, find secureboot option, delete current keys and...
 
 Additionally, this tools allow user to sign systemd-boot. Please read properly the notification when launch option `2`.
 
-## Credits
+### Credits
 
 [Archlinux](https://archlinux.org/) | [Acidanthera](https://github.com/acidanthera)
