@@ -3,6 +3,8 @@ import subprocess
 from pathlib import Path
 
 # Color Definition
+
+
 def print_message(message, color):
     colors = {
         "red": "\033[91m",
@@ -12,8 +14,10 @@ def print_message(message, color):
         "end": "\033[0m",
     }
     print(f"{colors.get(color, colors['end'])}{message}{colors['end']}")
-    
+
+
 keys_dir = "keys"
+
 
 def show_notification():
     notification = """
@@ -29,6 +33,7 @@ def show_notification():
     * I am not responsible for any issues regarding the process. 
     """
     print_message(notification, "red")
+
 
 def sign_systemd(dir):
     # Traverse the dir
@@ -53,10 +58,13 @@ def sign_systemd(dir):
                     text=True,
                 )
                 if result.returncode == 0:
-                    print_message(f"Signing successful for {file} in {root}", "green")
+                    print_message(
+                        f"Signing successful for {file} in {root}", "green")
                 else:
-                    print_message(f"Signing failed for {file} in {root}. Error:", "red")
+                    print_message(
+                        f"Signing failed for {file} in {root}. Error:", "red")
                     print(result.stderr)
+
 
 if __name__ == "__main__":
     show_notification()
