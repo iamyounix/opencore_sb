@@ -8,7 +8,6 @@ import subprocess
 import urllib.parse
 import urllib.request
 import zipfile
-import sys
 
 directories = [
     "keys",
@@ -20,6 +19,8 @@ for dir in directories:
     os.makedirs(dir, exist_ok=True)
 
 # Color Definition
+
+
 def print_message(message, color):
     colors = {
         "red": "\033[91m",
@@ -64,7 +65,8 @@ print("-------------------------------------------------------------------------
 
 
 def generate_certificate():
-    choice = input("Press '1' for default certificate or '2' for custom certificate: ")
+    choice = input(
+        "Press '1' for default certificate or '2' for custom certificate: ")
     if choice == "1":
         country = "US"
         state = "California"
@@ -75,7 +77,8 @@ def generate_certificate():
         country = input("Enter country code (i.e. US): ")
         state = input("Enter state (i.e. Washington): ")
         locality = input("Enter locality (i.e. Redmond): ")
-        organization = input("Enter organization (i.e. Microsoft Corporation): ")
+        organization = input(
+            "Enter organization (i.e. Microsoft Corporation): ")
         common_name = input("Enter any common name: ")
     else:
         print("Invalid choice. Exiting.")
@@ -92,7 +95,7 @@ def generate_certificate():
 
     try:
         print_message("Generating PK", "blue")
-        pk_path = Path(keys_dir) / "PK"
+        ok_path = Path(keys_dir) / "PK"
         subprocess.run(
             [
                 "openssl",
@@ -101,7 +104,7 @@ def generate_certificate():
                 "rsa:4096",
                 "-nodes",
                 "-keyout",
-                f"{pk_path}.key",
+                f"{ok_path}.key",
                 "-new",
                 "-x509",
                 "-sha256",
@@ -110,7 +113,7 @@ def generate_certificate():
                 "-subj",
                 f"/C={country}/ST={state}/L={locality}/O={organization}/CN={common_name} Platform Key/",
                 "-out",
-                f"{pk_path}.crt",
+                f"{ok_path}.crt",
             ],
             check=True,
             stdout=subprocess.DEVNULL,  # Suppress stdout
@@ -123,9 +126,9 @@ def generate_certificate():
                 "-outform",
                 "DER",
                 "-in",
-                f"{pk_path}.crt",
+                f"{ok_path}.crt",
                 "-out",
-                f"{pk_path}.cer",
+                f"{ok_path}.cer",
             ],
             check=True,
             stdout=subprocess.DEVNULL,  # Suppress stdout
@@ -136,8 +139,8 @@ def generate_certificate():
                 "cert-to-efi-sig-list",
                 "-g",
                 guid_content,
-                f"{pk_path}.crt",
-                f"{pk_path}.esl",
+                f"{ok_path}.crt",
+                f"{ok_path}.esl",
             ],
             check=True,
             stdout=subprocess.DEVNULL,  # Suppress stdout
@@ -149,41 +152,41 @@ def generate_certificate():
                 "-g",
                 guid_content,
                 "-k",
-                f"{pk_path}.key",
+                f"{ok_path}.key",
                 "-c",
-                f"{pk_path}.crt",
+                f"{ok_path}.crt",
                 "PK",
-                f"{pk_path}.esl",
-                f"{pk_path}.auth",
+                f"{ok_path}.esl",
+                f"{ok_path}.auth",
             ],
             check=True,
             stdout=subprocess.DEVNULL,  # Suppress stdout
             stderr=subprocess.DEVNULL,  # Suppress stderr
         )
         print_message("Generating PK successful.", "green")
-        calculate_checksums(pk_path)
+        calculate_checksums(ok_path)
 
         print_message("Generating noPK", "blue")
-        no_pk_path = Path(keys_dir) / "noPK"
+        no_ok_path = Path(keys_dir) / "noPK"
         subprocess.run(
             [
                 "sign-efi-sig-list",
                 "-g",
                 guid_content,
                 "-c",
-                f"{pk_path}.crt",
+                f"{ok_path}.crt",
                 "-k",
-                f"{pk_path}.key",
+                f"{ok_path}.key",
                 "PK",
                 "/dev/null",
-                f"{no_pk_path}.auth",
+                f"{no_ok_path}.auth",
             ],
             check=True,
             stdout=subprocess.DEVNULL,  # Suppress stdout
             stderr=subprocess.DEVNULL,  # Suppress stderr
         )
         print_message("Generating noPK successful.", "green")
-        calculate_checksums(no_pk_path)
+        calculate_checksums(no_ok_path)
 
         print_message("Generating KEK", "blue")
         kek_path = Path(keys_dir) / "KEK"
@@ -335,19 +338,15 @@ def generate_certificate():
 
 def calculate_checksums(directory):
     extensions = (".auth", ".crt", ".esl", ".key")
-    excluded_files = ["noPK.crt", "noPK.esl", "noPK.key"]
     for ext in extensions:
         file = f"{directory}{ext}"
-        filename = os.path.basename(file)
-        if filename not in excluded_files and os.path.exists(file):
+        if os.path.exists(file):
             with open(file, "rb") as f:
                 data = f.read()
                 sha1_hash = hashlib.sha1(data).hexdigest()
                 md5_hash = hashlib.md5(data).hexdigest()
                 print(f"SHA1: {sha1_hash}, MD5: {md5_hash} for file: {file}")
-        elif filename in excluded_files:
-            print(f"Skipping {file}")
-        elif not os.path.exists(file):
+        else:
             print(f"File {file} does not exist.")
 
 
@@ -371,12 +370,11 @@ def change_permissions(dir):
                     os.chmod(filepath, 0o600)
                 except Exception as e:
                     print_message(
-                        f"Error changing permissions for {filepath}: {e}", "red"
-                    )
+                        f"Error changing permissions for {filepath}: {e}", "red")
 
     for dir_path, files in files_by_dir.items():
         print(f"Changing permission:")
-        file_list = ", ".join(files)
+        file_list = ', '.join(files)
         print(f"{dir_path}: {file_list}")
 
 
@@ -396,9 +394,8 @@ def rename_files_and_replace_spaces(dir, filename_map):
     for file in os.listdir(dir):
         if file.endswith((".auth", ".cer", ".crt", ".esl", ".key")):
             old_filepath = Path(dir, file)
-            new_filename = (
-                filename_map.get(file, file).replace("-", " ").replace("%20", " ")
-            )
+            new_filename = filename_map.get(file, file).replace(
+                "-", " ").replace("%20", " ")
             new_filepath = Path(dir, new_filename)
             os.rename(old_filepath, new_filepath)
 
@@ -428,9 +425,8 @@ urls = {
 download_failed = False
 
 for url, filename in urls.items():
-    filename = (
-        filename + os.path.splitext(urllib.parse.urlparse(url).path)[1]
-    )  # Keep the original extension
+    # Keep the original extension
+    filename = filename + os.path.splitext(urllib.parse.urlparse(url).path)[1]
     filepath = Path(keys_dir, filename)
     try:
         urllib.request.urlretrieve(url, str(filepath))
@@ -443,13 +439,8 @@ for url, filename in urls.items():
 
 if not download_failed:
     print_message("MS keys downloaded and saved successfully", "blue")
-    rename_files_and_replace_spaces(
-        keys_dir,
-        {
-            os.path.basename(urllib.parse.urlparse(url).path): name
-            for url, name in urls.items()
-        },
-    )
+    rename_files_and_replace_spaces(keys_dir, {os.path.basename(
+        urllib.parse.urlparse(url).path): name for url, name in urls.items()})
     print_message("Files renamed and spaces replaced", "green")
 else:
     print_message("MS keys downloading failed.", "red")
@@ -582,10 +573,10 @@ except Exception as e:
 
 oc_sb_dir = "keys"
 kek_path = Path(oc_sb_dir)
-pk_path = Path(oc_sb_dir)
+ok_path = Path(oc_sb_dir)
 
 kek_cert = kek_path / "KEK.crt"
-pk_cert = pk_path / "PK.crt"
+pk_cert = ok_path / "PK.crt"
 
 try:
     subprocess.run(
@@ -616,7 +607,7 @@ try:
             "-g",
             owner_guid,
             "-k",
-            f"{pk_path}/PK.key",
+            f"{ok_path}/PK.key",
             "-c",
             pk_cert,
             "KEK",
@@ -625,9 +616,11 @@ try:
         ],
         check=True,
     )
-    print_message("Additional Microsoft Windows KEK.auth generate success", "green")
+    print_message(
+        "Additional Microsoft Windows KEK.auth generate success", "green")
 except Exception as e:
-    print_message("Additional Microsoft Windows KEK.auth generate failed:", e, "red")
+    print_message(
+        "Additional Microsoft Windows KEK.auth generate failed:", e, "red")
 
 
 print("----------------------------------------------------------------------------")
@@ -652,7 +645,8 @@ def get_latest_release_and_download():
         ).lower()
         if user_input == "yes":
             download_url = f"https://github.com/acidanthera/OpenCorePkg/releases/download/{latest_version}/OpenCore-{latest_version}-RELEASE.zip"
-            zip_file_path = Path(oc_dir, f"OpenCore-{latest_version}-RELEASE.zip")
+            zip_file_path = Path(
+                oc_dir, f"OpenCore-{latest_version}-RELEASE.zip")
             subprocess.run(
                 ["curl", "-L", "-o", str(zip_file_path), download_url], check=True
             )
@@ -661,6 +655,7 @@ def get_latest_release_and_download():
             os.remove(zip_file_path)
             print(
                 f"OpenCore {latest_version} downloaded, extracted, and zip file deleted."
+
             )
             source_dir = Path(oc_dir, "X64/EFI")
             destination_dir = oc_dir
@@ -742,7 +737,8 @@ def sign_files(dir):
                 )
                 if result.returncode == 0:
                     os.replace(signed_file_path, file_path)
-                    print_message(f"Signing successful for {file} in {root}", "blue")
+                    print_message(
+                        f"Signing successful for {file} in {root}", "blue")
                     sha1_hash, md5_hash = compute_checksums(file_path)
                     print(f"SHA1: {sha1_hash}, MD5: {md5_hash} for {file}")
 
@@ -755,7 +751,8 @@ def sign_files(dir):
                     print_message("Verification output:", "yellow")
                     print(verification_result.stdout)
                 else:
-                    print_message(f"Signing failed for {file} in {root}. Error:", "red")
+                    print_message(
+                        f"Signing failed for {file} in {root}. Error:", "red")
                     print(result.stderr)
 
 
